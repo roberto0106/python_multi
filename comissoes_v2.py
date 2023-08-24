@@ -7,6 +7,9 @@ import pandas_gbq
 from google.cloud import bigquery
 import locale
 
+
+parametros = ['TABELA COMISSÕES INTERNO - FAT','TABELA COMISSÕES INTERNO - LIQ']
+
 # In[]
 
 # Carregar o arquivo CSV em um DataFrame
@@ -20,7 +23,9 @@ demonstrativo_3000 = pd.read_excel(caminho_arquivo_3000)
 demonstrativo_4000 = pd.read_excel(caminho_arquivo_4000)
 compensacao = pd.read_excel(caminho_compensacao)
 
-demonstrativo = pd.concat([demonstrativo_1000, demonstrativo_3000, demonstrativo_4000], ignore_index=True)
+demonstrativo_consolidado = pd.concat([demonstrativo_1000, demonstrativo_3000, demonstrativo_4000], ignore_index=True)
+
+demonstrativo = demonstrativo_consolidado.loc[demonstrativo_consolidado['Denominação Tabelas'].isin(parametros)]
 
 # In[]
 
@@ -74,6 +79,7 @@ compensacao.columns = [formatar_nome_coluna(nome) for nome in compensacao.column
 
 demonstrativo_consolidado['referencia_extracao'] = '20230615 a 20230720'
 compensacao['referencia_extracao'] = '20230615 a 20230720'
+
 
 # In[]
 
