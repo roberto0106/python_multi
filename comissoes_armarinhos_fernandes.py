@@ -8,22 +8,20 @@ from google.cloud import bigquery
 import locale
 
 
-parametros = ['TABELA COMISSÕES INTERNO - FAT','TABELA COMISSÕES INTERNO - LIQ']
+parametros = ['TABELA COMISSÕES EXTERNO - LIQ']
 
 # In[]
 
 # Carregar o arquivo CSV em um DataFrame
-caminho_arquivo_1000 = r'C:\Users\roberto.flor\Documents\comissões\julho\1000.xlsx'
-caminho_arquivo_3000 = r'C:\Users\roberto.flor\Documents\comissões\julho\3000.xlsx'
-caminho_arquivo_4000 = r'C:\Users\roberto.flor\Documents\comissões\julho\4000.xlsx'
-caminho_compensacao = r'C:\Users\roberto.flor\Documents\comissões\julho\CustomerLineItems.xlsx'
+caminho_compensacao = r'C:\Users\roberto.flor\Downloads\COMPENSAÇÃO ARMARINHOS 3%.xlsx'
 
-demonstrativo_1000 = pd.read_excel(caminho_arquivo_1000)
-demonstrativo_3000 = pd.read_excel(caminho_arquivo_3000)
-demonstrativo_4000 = pd.read_excel(caminho_arquivo_4000)
+caminho_armarinho = r'C:\Users\roberto.flor\Downloads\FECHAMENTO ARMARINHOS (AGOSTO).xlsx'
+
+demonstrativo_1000 = pd.read_excel(caminho_armarinho)
+
 compensacao = pd.read_excel(caminho_compensacao)
 
-demonstrativo_consolidado = pd.concat([demonstrativo_1000, demonstrativo_3000, demonstrativo_4000], ignore_index=True)
+demonstrativo_consolidado = demonstrativo_1000
 
 demonstrativo = demonstrativo_consolidado.loc[demonstrativo_consolidado['Denominação Tabelas'].isin(parametros)]
 
@@ -77,18 +75,18 @@ demonstrativo_consolidado.columns = [formatar_nome_coluna(nome) for nome in demo
 compensacao.columns = [formatar_nome_coluna(nome) for nome in compensacao.columns]
 
 
-demonstrativo_consolidado['referencia_extracao'] = '20230615 a 20230720'
-compensacao['referencia_extracao'] = '20230615 a 20230720'
+demonstrativo_consolidado['referencia_extracao'] = '20230720 a 20230815'
+compensacao['referencia_extracao'] = '20230720 a 20230815'
 
 
 # In[]
 
-projeto = 'rh-analytics-397518'
-dataset = 'comissoes_internos'
+projeto = 'dotted-cedar-149302'
+dataset = 'externos'
 
 # Nome da tabela no BigQuery
-nome_tabela_demonstrativo = 'comissoes_internos.demonstrativo'
-nome_tabela_compensacao = 'comissoes_internos.compensacao'
+nome_tabela_demonstrativo = 'externos.demonstrativo'
+nome_tabela_compensacao = 'externos.compensacao'
 
 # pandas_gbq.to_gbq(demonstrativo_consolidado, nome_tabela, project_id=projeto, if_exists='replace', table_schema=schema)
 pandas_gbq.to_gbq(demonstrativo_consolidado, nome_tabela_demonstrativo, project_id=projeto, if_exists='replace')

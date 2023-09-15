@@ -7,23 +7,21 @@ import pandas_gbq
 from google.cloud import bigquery
 import locale
 
-
-parametros = ['TABELA COMISSÕES INTERNO - FAT','TABELA COMISSÕES INTERNO - LIQ']
+referencias = '20230801 a 20230831'
+parametros = ['TABELA COMISSÕES EXTERNO - FAT','TABELA COMISSÕES EXTERNO - LIQ']
 
 # In[]
 
 # Carregar o arquivo CSV em um DataFrame
-caminho_arquivo_1000 = r'C:\Users\roberto.flor\Documents\comissões\julho\1000.xlsx'
-caminho_arquivo_3000 = r'C:\Users\roberto.flor\Documents\comissões\julho\3000.xlsx'
-caminho_arquivo_4000 = r'C:\Users\roberto.flor\Documents\comissões\julho\4000.xlsx'
-caminho_compensacao = r'C:\Users\roberto.flor\Documents\comissões\julho\CustomerLineItems.xlsx'
+caminho_giga = r'files/DEMONSTRATIVO EXTERNO GIGA (AGOSTO 2023).xlsx'
+caminho_industrial = r'files/DEMONSTRATIVO EXTERNO INDUSTRIAL (AGOSTO 2023).xlsx'
+caminho_compensacao = r'files/COMPENSACAO EXTERNO (AGOSTO 2023).xlsx'
 
-demonstrativo_1000 = pd.read_excel(caminho_arquivo_1000)
-demonstrativo_3000 = pd.read_excel(caminho_arquivo_3000)
-demonstrativo_4000 = pd.read_excel(caminho_arquivo_4000)
+demonstrativo_1000 = pd.read_excel(caminho_giga)
+demonstrativo_3000 = pd.read_excel(caminho_industrial)
 compensacao = pd.read_excel(caminho_compensacao)
 
-demonstrativo_consolidado = pd.concat([demonstrativo_1000, demonstrativo_3000, demonstrativo_4000], ignore_index=True)
+demonstrativo_consolidado = pd.concat([demonstrativo_1000, demonstrativo_3000, ], ignore_index=True)
 
 demonstrativo = demonstrativo_consolidado.loc[demonstrativo_consolidado['Denominação Tabelas'].isin(parametros)]
 
@@ -77,20 +75,19 @@ demonstrativo_consolidado.columns = [formatar_nome_coluna(nome) for nome in demo
 compensacao.columns = [formatar_nome_coluna(nome) for nome in compensacao.columns]
 
 
-demonstrativo_consolidado['referencia_extracao'] = '20230615 a 20230720'
-compensacao['referencia_extracao'] = '20230615 a 20230720'
+demonstrativo_consolidado['referencia_extracao'] = referencias
+compensacao['referencia_extracao'] = referencias
 
 
 # In[]
 
 projeto = 'rh-analytics-397518'
-dataset = 'comissoes_internos'
+dataset = 'comissoes_externos'
 
 # Nome da tabela no BigQuery
-nome_tabela_demonstrativo = 'comissoes_internos.demonstrativo'
-nome_tabela_compensacao = 'comissoes_internos.compensacao'
+nome_tabela_demonstrativo = 'comissoes_externos.demonstrativo'
+nome_tabela_compensacao = 'comissoes_externos.compensacao'
 
-# pandas_gbq.to_gbq(demonstrativo_consolidado, nome_tabela, project_id=projeto, if_exists='replace', table_schema=schema)
 pandas_gbq.to_gbq(demonstrativo_consolidado, nome_tabela_demonstrativo, project_id=projeto, if_exists='replace')
 pandas_gbq.to_gbq(compensacao, nome_tabela_compensacao, project_id=projeto, if_exists='replace')
 # %%
