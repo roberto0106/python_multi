@@ -7,21 +7,21 @@ import pandas_gbq
 from google.cloud import bigquery
 import locale
 
-referencias = '20230801 a 20230831'
-parametros = ['TABELA COMISSÕES EXTERNO - FAT','TABELA COMISSÕES EXTERNO - LIQ']
+referencias = '20230816 a 20230917'
+parametros = ['TABELA COMISSÕES INTERNO - FAT','TABELA COMISSÕES INTERNO - LIQ']
 
 # In[]
 
 # Carregar o arquivo CSV em um DataFrame
-caminho_giga = r'files/DEMONSTRATIVO EXTERNO GIGA (AGOSTO 2023).xlsx'
-caminho_industrial = r'files/DEMONSTRATIVO EXTERNO INDUSTRIAL (AGOSTO 2023).xlsx'
-caminho_compensacao = r'files/COMPENSACAO EXTERNO (AGOSTO 2023).xlsx'
+# caminho_giga = r'files/DEMONSTRATIVO EXTERNO GIGA (AGOSTO 2023).xlsx'
+caminho_unificado = r'files/DEMONSTRATIVO UNIFICADO SETEMBRO.xlsx'
+caminho_compensacao = r'files/CustomerLineItems (internos_setembro).xlsx'
 
-demonstrativo_1000 = pd.read_excel(caminho_giga)
-demonstrativo_3000 = pd.read_excel(caminho_industrial)
+demonstrativo_unificado = pd.read_excel(caminho_unificado)
+# demonstrativo_3000 = pd.read_excel(caminho_industrial)
 compensacao = pd.read_excel(caminho_compensacao)
 
-demonstrativo_consolidado = pd.concat([demonstrativo_1000, demonstrativo_3000, ], ignore_index=True)
+demonstrativo_consolidado = pd.concat([demonstrativo_unificado], ignore_index=True)
 
 demonstrativo = demonstrativo_consolidado.loc[demonstrativo_consolidado['Denominação Tabelas'].isin(parametros)]
 
@@ -82,12 +82,15 @@ compensacao['referencia_extracao'] = referencias
 # In[]
 
 projeto = 'rh-analytics-397518'
-dataset = 'comissoes_externos'
+dataset = 'comissoes_internos'
 
 # Nome da tabela no BigQuery
-nome_tabela_demonstrativo = 'comissoes_externos.demonstrativo'
-nome_tabela_compensacao = 'comissoes_externos.compensacao'
+nome_tabela_demonstrativo = 'comissoes_internos.demonstrativo'
+nome_tabela_compensacao = 'comissoes_internos.compensacao'
 
-pandas_gbq.to_gbq(demonstrativo_consolidado, nome_tabela_demonstrativo, project_id=projeto, if_exists='replace')
-pandas_gbq.to_gbq(compensacao, nome_tabela_compensacao, project_id=projeto, if_exists='replace')
+# inserir dataframe em tabela exisitente no bigquery
+
+
+pandas_gbq.to_gbq(demonstrativo_consolidado, nome_tabela_demonstrativo, project_id=projeto, if_exists='append')
+pandas_gbq.to_gbq(compensacao, nome_tabela_compensacao, project_id=projeto, if_exists='append')
 # %%

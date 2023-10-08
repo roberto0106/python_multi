@@ -8,16 +8,52 @@ from google.cloud import bigquery
 import locale
 
 # %%
-caminho_folha = r'C:\Users\roberto.flor\Documents\folha.xlsx'
-folha = pd.read_excel(caminho_folha,sheet_name='tratada')
+caminho_folha = r'files/folha.xlsx'
+folha = pd.read_excel(caminho_folha)
+
+# Função para retirar acentos, substituir espaços por underscores, remover pontos e converter para minúsculas
+def formatar_nome_coluna(nome_coluna):
+    nome_sem_acentos =unidecode(nome_coluna)   # Remove acentos
+    nome_sem_pontos = nome_sem_acentos.replace('.', '')  # Remove pontos
+    nome_sem_barras = nome_sem_pontos.replace('/', '_')  # Remove pontos
+    nome_sem_abertura_parenteses = nome_sem_barras.replace('(', '_')  # Remove pontos
+    nome_sem_fechamento_parenteses = nome_sem_abertura_parenteses.replace(')', '_')  # Remove pontos
+    nome_formatado = nome_sem_fechamento_parenteses.replace(' ', '_')  # Substitui espaços por underscores
+    nome_formatado_minusculo = nome_formatado.lower()  # Converte para minúsculas
+    return nome_formatado_minusculo
+
+folha.columns = [formatar_nome_coluna(nome) for nome in folha.columns]
 
 
 # In[]
 
-folha["Início"] = pd.to_datetime(folha["Início"], format="%d/%m/%Y")
+folha["inicio"] = pd.to_datetime(folha["inicio"], format="%m/%Y")
 
-folha.sort_values(by="Montante", inplace=True)
-folha["Intervalo de Dias"] = folha["Início"].diff().dt.days
+folha['mes_referencia'] = folha['inicio'].dt.strftime('%Y-%m')
+
+
+selecao = [
+    'numero_no_cadastro_de_pessoa_f',
+    'montante',
+    'mes_referencia'
+]
+
+# selecionando as colunas selecao no dataframe folha
+df1= folha[selecao].copy().reset_index()
+
+# sort dataframe by 'numero_no_cadastro_de_pessoa_f','inicio','montante'
+df2 = df1.sort_values(['numero_no_cadastro_de_pessoa_f','mes_referencia','montante']).drop_duplicates(
+    subset=['numero_no_cadastro_de_pessoa_f', 'mes_referencia'], 
+    keep='last'
+    )
+
+# pivot df2 to row='numero_no_cadastro_de_pessoa_f', column='inicio', value=sum(montante)
+df3 = pd.pivot_table(data=df2,
+                    index=['numero_no_cadastro_de_pessoa_f'],
+                    columns=["mes_referencia"],
+                    values="montante")
+        
+
 # Definir uma função personalizada para aplicar ao groupby
 def custom_agg(group):
     max_idx = group['Montante'].idxmax()
@@ -41,3 +77,4 @@ grouped.rename(columns={'Nº pessoal': 'Nº_pessoal'}, inplace=True)
 
 # Salvar o resultado em um novo arquivo CSV
 grouped.to_csv('resultado.csv', index=False)
+# %%
